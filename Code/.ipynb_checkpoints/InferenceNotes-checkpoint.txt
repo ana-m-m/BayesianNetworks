@@ -1,0 +1,234 @@
+To evaluate the impact of one feature on another in a Bayesian Network, you can leverage inference techniques to calculate conditional probabilities and observe how the probability distribution of one variable changes in response to changes in another variable.
+
+This involves answering questions such as:
+
+"How does the probability distribution of Class change when crime is observed?"
+"What is the effect of observing education-spending = 1 on religious-groups-in-schools?"
+Here’s a step-by-step process to achieve this:
+
+Steps to Evaluate the Impact of One Feature on Another:
+1. Train a Bayesian Network (BN)
+Before you can query relationships between features, ensure that you’ve:
+
+Built the Bayesian network structure (e.g., how the variables are connected).
+Learned the parameters (conditional probability distributions) for the network.
+You should have the bn_model already trained.
+
+2. Use Variable Elimination for Inference
+To evaluate how one feature influences another, you need to perform inference using a method like Variable Elimination. This allows you to calculate the conditional probability of one variable given the evidence (i.e., the other variable).
+
+Example Scenario:
+You want to evaluate how education-spending affects Class.
+
+Steps:
+
+Query the probability of Class without any evidence.
+Query the probability of Class given education-spending = 1.
+Compare the two results to assess the impact of education-spending on Class.
+3. Implementing the Queries in Code
+Here’s how you can do this in pgmpy:
+
+a) Query Without Evidence (Baseline)
+First, calculate the marginal probability of Class (without conditioning on any evidence):
+
+python
+Copiar código
+from pgmpy.inference import VariableElimination
+
+# Initialize the inference object with your trained model
+infer = VariableElimination(bn_model)
+
+# Query the marginal probability distribution of 'Class' without any evidence
+prob_class_no_evidence = infer.query(variables=['Class'])
+
+# Print the result
+print("Probability of 'Class' without any evidence:")
+print(prob_class_no_evidence)
+b) Query With Evidence (After Conditioning on Another Feature)
+Now, calculate the marginal probability of Class given that education-spending = 1. This will show how the probability of Class changes when you condition on education-spending = 1:
+
+python
+Copiar código
+# Query the marginal probability distribution of 'Class' given 'education-spending = 1'
+prob_class_given_education = infer.query(variables=['Class'], evidence={'education-spending': 1})
+
+# Print the result
+print("Probability of 'Class' given 'education-spending = 1':")
+print(prob_class_given_education)
+c) Compare the Results
+Now, you can compare the two probability distributions (prob_class_no_evidence vs. prob_class_given_education) to evaluate the impact.
+
+For instance:
+
+If the probability of Class = 1 increases when education-spending = 1, it suggests that education-spending has a positive influence on Class.
+If the distribution of Class remains unchanged, it suggests that education-spending has little to no effect on Class.
+4. Repeat the Process for Other Relationships
+To evaluate the effect of other features on each other, you can repeat the above process for different pairs of variables. For example:
+
+How does water-project-cost-sharing influence adoption-of-the-budget-resolution?
+What is the effect of crime on superfund-right-to-sue?
+Each time, query the conditional probability distribution of one feature while conditioning on another, and compare the results.
+
+Advanced Queries: Joint Probability Distributions
+If you want to analyze joint relationships (i.e., the relationship between multiple variables at once), you can query the joint probability distribution of multiple variables:
+
+python
+Copiar código
+# Query the joint probability of 'Class' and 'education-spending' given 'crime = 1'
+prob_joint = infer.query(variables=['Class', 'education-spending'], evidence={'crime': 1})
+
+# Print the result
+print("Joint probability of 'Class' and 'education-spending' given 'crime = 1':")
+print(prob_joint)
+This allows you to understand how combinations of variables interact with each other and how observing one variable influences the probability distribution of others.
+
+5. Sensitivity Analysis (Optional)
+To further understand the impact of a feature on another, you can perform sensitivity analysis by varying the values of one or more features and observing how the distribution of the target variable changes.
+
+For example:
+
+You can vary crime (e.g., crime = 0 vs. crime = 1) and see how education-spending behaves.
+Or change water-project-cost-sharing to different binary values and see how Class changes.
+This will give you a more comprehensive view of how robust the relationship is between features.
+
+Interpreting the Results
+Once you get the conditional probability distributions, interpret them in the following ways:
+
+Direct Impact: If the probability of Class changes significantly with different values of another feature (e.g., education-spending), then you have evidence of an impact.
+No Impact: If the distribution remains almost unchanged, then the feature does not have a strong relationship with the target variable.
+Conclusion:
+By conditioning on different variables and examining how the probabilities shift, you can effectively evaluate the impact of one feature on another in your Bayesian Network.
+
+Summary of Key Steps:
+Perform inference using Variable Elimination.
+Compare the marginal probability distributions with and without evidence to assess the effect.
+Optionally, query joint distributions for a deeper understanding.
+Conduct sensitivity analysis to observe the robustness of relationships.
+
+
+----------------------------------
+            QUERIES
+----------------------------------
+
+1. Impact of Multiple Policies on "Class"
+You can query how different policies, or combinations of policies, influence the likelihood of a person belonging to a particular class (Class).
+
+Query:
+How does the probability of Class change when the following policies are enacted together: handicapped-infants = 1, water-project-cost-sharing = 1, and physician-fee-freeze = 1?
+
+prob_class_given_policies = infer.query(variables=['Class'], evidence={'handicapped-infants': 1, 'water-project-cost-sharing': 1, 'physician-fee-freeze': 1})
+
+
+Interpretation:
+This query will help you see if certain combinations of policies (e.g., social programs and healthcare freezes) increase or decrease the likelihood of being classified as a certain class (Class).
+
+---------------------------------
+
+2. Probabilistic Dependency Between Foreign Aid and Military Policies
+You can explore how foreign aid policies and military policies influence each other. For instance, you can query the relationship between foreign aid to El Salvador (el-salvador-aid) and military spending on missile defense (mx-missile).
+
+Query:
+What is the joint probability distribution of el-salvador-aid and mx-missile given that crime = 1 (i.e., under a crime-reduction policy)?
+
+prob_joint_aid_missile = infer.query(variables=['el-salvador-aid', 'mx-missile'], evidence={'crime': 1})
+
+
+Interpretation:
+This query can show you how foreign aid and defense policies may be related in the context of a crime-reduction policy. If they are dependent on each other, it could indicate that certain policies about foreign aid are linked to military defense spending.
+
+--------------------------------------------
+
+3. Impact of Economic Sanctions on Military and Foreign Relations
+Economic sanctions, like export-administration-act-south-africa and duty-free-exports, might influence military and foreign relations.
+
+Query:
+How does the probability of mx-missile change when export-administration-act-south-africa = 1 and duty-free-exports = 1?
+
+prob_mx_missile_given_sanctions = infer.query(variables=['mx-missile'], evidence={'export-administration-act-south-africa': 1, 'duty-free-exports': 1})
+
+
+Interpretation:
+This can tell you if economic sanctions related to exports impact military policy regarding missile defense. This could highlight the economic-military policy interaction.
+
+-----------------------------------------------
+
+4. Relationship Between Religious Influence and Education Spending
+You can also explore the relationship between religious influence in schools (religious-groups-in-schools) and education spending (education-spending).
+
+Query:
+How does the probability of religious-groups-in-schools change when education-spending = 1?
+
+prob_religion_given_education = infer.query(variables=['religious-groups-in-schools'], evidence={'education-spending': 1})
+
+
+Interpretation:
+This can help you understand whether higher education spending is correlated with policies related to the presence of religious groups in schools.
+
+------------------------------------------------------------------
+
+5. Conditional Impact of Immigration on Other Policies
+The immigration policy (immigration) might have a conditional effect on various other policies. A relevant query could be to investigate how it affects social welfare programs or other foreign aid policies.
+
+Query:
+How does the probability of handicapped-infants and adoption-of-the-budget-resolution change when immigration = 1?
+
+prob_joint_immigration = infer.query(variables=['handicapped-infants', 'adoption-of-the-budget-resolution'], evidence={'immigration': 1})
+
+Interpretation:
+This query will show you if there’s any direct or indirect relationship between immigration and welfare policies like those for handicapped infants or the adoption of the budget resolution.
+
+----------------------------------------------------
+
+6. Effect of Crime on Superfund and Environmental Policies
+Crime (crime) might have an impact on environmental policies like superfund-right-to-sue and synfuels-corporation-cutback.
+
+Query:
+What is the probability distribution of superfund-right-to-sue and synfuels-corporation-cutback given that crime = 1?
+
+prob_env_policy_given_crime = infer.query(variables=['superfund-right-to-sue', 'synfuels-corporation-cutback'], evidence={'crime': 1})
+
+
+Interpretation:
+This query helps evaluate if policies related to crime affect environmental policies, such as those concerning pollution control or legal rights for citizens to sue environmental polluters.
+
+-------------------------------------------------------------
+
+7. Multi-Policy Influence on "Class"
+It is useful to examine how different policies affect the probability distribution of Class. This query could include various policies that intersect at a social-political level.
+
+Query:
+What is the joint probability distribution of Class given that water-project-cost-sharing = 1, education-spending = 1, and superfund-right-to-sue = 1?
+
+prob_class_given_multiple_policies = infer.query(variables=['Class'], evidence={'water-project-cost-sharing': 1, 'education-spending': 1, 'superfund-right-to-sue': 1})
+
+Interpretation:
+This query can tell you how a combination of environmental policies and social policies (water, education, environmental rights) might influence the political or social class of an individual.
+
+---------------------------------------------------------------------
+
+8. Sensitivity Analysis: Exploring Changes in Class Distribution
+You can explore how changes in multiple features affect the target variable (Class), especially when considering uncertain or ambiguous values.
+
+Query:
+What is the change in the probability of Class when the following features are varied:
+physician-fee-freeze
+aid-to-nicaraguan-contras
+
+prob_class_given_physician_and_aid = infer.query(variables=['Class'], evidence={'physician-fee-freeze': 1, 'aid-to-nicaraguan-contras': 1})
+
+Interpretation:
+This will help assess how sensitive the class distribution is to changes in healthcare and foreign intervention policies.
+
+--------------------------------------------------------------------------
+
+9. Probabilistic Interdependence Between Military and Social Policies
+Finally, exploring how military policies (e.g., mx-missile, anti-satellite-test-ban) interact with social policies like crime and handicapped-infants could uncover interesting dependencies.
+
+Query:
+What is the joint probability distribution of military-related features (mx-missile, anti-satellite-test-ban) and social welfare features (handicapped-infants, crime)?
+
+prob_military_social_interdependence = infer.query(variables=['mx-missile', 'anti-satellite-test-ban', 'handicapped-infants', 'crime'])
+
+
+Interpretation:
+This query will show how military policies are probabilistically interdependent on social welfare policies and crime, potentially revealing correlations between defense spending and social issues.
